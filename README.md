@@ -1,2 +1,3 @@
-# smartthings
-DTH for SmartThings
+# SmartThings
+
+Learning by doing DTH:s for ST.
