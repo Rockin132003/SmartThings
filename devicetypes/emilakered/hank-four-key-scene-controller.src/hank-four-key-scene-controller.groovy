@@ -83,6 +83,16 @@ def parse(String description) {
     //log.debug ("Parsing description:$description")
     def event
     def results = []
+	
+	def numberOfButtonsVal = device.currentValue("numberOfButtons")
+    if ( !state.numberOfButtons || !numberOfButtonsVal || numberOfButtonsVal !=4) {
+        log.debug ("Setting number of buttons to 4")
+        state.numberOfButtons = "4"
+        event = createEvent(name: "numberOfButtons", value: "4", displayed: false)
+        if (event) {
+            results += event
+        }
+    }
     
     //log.debug("RAW command: $description")
     if (description.startsWith("Err")) {
@@ -96,10 +106,6 @@ def parse(String description) {
                 results += event
             }
 		}
-		if (!state.numberOfButtons) {
-			state.numberOfButtons = "4"
-			createEvent(name: "numberOfButtons", value: "4", displayed: false)
-  		}
     }
     return results
 }
