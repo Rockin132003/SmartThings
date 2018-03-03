@@ -11,6 +11,15 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ *	2018-03-03
+ *	- Changed colors
+ *	- Removed some unused code
+ *	- Removed Configuration for now, can't find how to trigger the hardware anyway
+ *	- Re-added some debug messages
+ *
+ *	2018-03-02
+ *	- Initial release
+ *
  */
  
 metadata {
@@ -21,7 +30,6 @@ metadata {
         capability "Configuration"
         capability "Holdable Button" 
         
-        attribute "button", "enum", ["pushed", "held", "released"]
         attribute "lastpressed", "string"
 		
 		command "manualPush"
@@ -38,8 +46,8 @@ metadata {
         multiAttributeTile(name:"button", type:"lighting", width:6, height:4, canChangeIcon:true) {
             tileAttribute("device.button", key: "PRIMARY_CONTROL"){
 				attributeState("pushed", label:'Pushed', backgroundColor:"#44b621")
-				attributeState("held", label:'Held', backgroundColor:"#36911a")
-				attributeState("released", label:'released', backgroundColor:"#286d13")
+				attributeState("held", label:'Held', backgroundColor:"#69c44d")
+				attributeState("released", label:'released', backgroundColor:"#8ed379")
             }
 			tileAttribute("device.lastpressed", key: "SECONDARY_CONTROL") {
                 attributeState "default", label:'Last used: ${currentValue}'
@@ -51,7 +59,7 @@ metadata {
         }
 		
         standardTile("manualHold", "device.manualHold", width: 2, height: 2, decoration: "flat") {
-            state "default", backgroundColor:"#36911a", action: "manualHold", label: "Hold"
+            state "default", backgroundColor:"#69c44d", action: "manualHold", label: "Hold"
         }		
         
         valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2){
@@ -140,7 +148,7 @@ def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd) {
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotification cmd) {
-    //log.debug( "CentralSceneNotification: $cmd")
+    log.debug( "CentralSceneNotification: $cmd")
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
 	sendEvent(name: "lastpressed", value: now, displayed: false)
     
@@ -159,7 +167,7 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
-    //log.debug("BatteryReport: $cmd")
+    log.debug("BatteryReport: $cmd")
 	def val = (cmd.batteryLevel == 0xFF ? 1 : cmd.batteryLevel)
 	if (val > 100) {
 		val = 100
