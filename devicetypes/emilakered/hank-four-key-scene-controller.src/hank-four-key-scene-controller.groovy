@@ -17,7 +17,7 @@
  */
  
 metadata {
-    definition (name: "Hank One-key Scene Controller", namespace: "emilakered", author: "Emil Åkered") {
+    definition (name: "Hank Four-key Scene Controller", namespace: "emilakered", author: "Emil Åkered") {
         capability "Actuator"
         capability "Battery"
         capability "Button"
