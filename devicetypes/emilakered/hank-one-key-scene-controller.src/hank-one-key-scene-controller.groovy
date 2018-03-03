@@ -45,9 +45,9 @@ metadata {
     tiles (scale: 2) {      
         multiAttributeTile(name:"button", type:"lighting", width:6, height:4, canChangeIcon:true) {
             tileAttribute("device.button", key: "PRIMARY_CONTROL"){
-				attributeState("pushed", label:'Pushed', backgroundColor:"#44b621")
-				attributeState("held", label:'Held', backgroundColor:"#69c44d")
-				attributeState("released", label:'released', backgroundColor:"#8ed379")
+				attributeState("pushed", label:'Pushed', backgroundColor:"#00A0DC")
+				attributeState("held", label:'Held', backgroundColor:"#4cbce6")
+				attributeState("released", label:'released', backgroundColor:"#99d9f1")
             }
 			tileAttribute("device.lastPressed", key: "SECONDARY_CONTROL") {
                 attributeState "default", label:'Last used: ${currentValue}'
@@ -55,11 +55,11 @@ metadata {
         }
         
         standardTile("manualPush", "device.manualPush", width: 2, height: 2, decoration: "flat") {
-            state "default", backgroundColor:"#44b621", action: "manualPush", label: "Push"
+            state "default", backgroundColor:"#00A0DC", action: "manualPush", label: "Push"
         }
 		
         standardTile("manualHold", "device.manualHold", width: 2, height: 2, decoration: "flat") {
-            state "default", backgroundColor:"#69c44d", action: "manualHold", label: "Hold"
+            state "default", backgroundColor:"#4cbce6", action: "manualHold", label: "Hold"
         }		
         
         valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2){
