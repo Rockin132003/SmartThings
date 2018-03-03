@@ -30,7 +30,7 @@ metadata {
         capability "Configuration"
         capability "Holdable Button" 
         
-        attribute "lastpressed", "string"
+        attribute "lastPressed", "string"
 		
 		command "manualPush"
         command "manualHold"
@@ -49,7 +49,7 @@ metadata {
 				attributeState("held", label:'Held', backgroundColor:"#69c44d")
 				attributeState("released", label:'released', backgroundColor:"#8ed379")
             }
-			tileAttribute("device.lastpressed", key: "SECONDARY_CONTROL") {
+			tileAttribute("device.lastPressed", key: "SECONDARY_CONTROL") {
                 attributeState "default", label:'Last used: ${currentValue}'
             }
         }
@@ -73,13 +73,13 @@ metadata {
 
 def manualPush() {
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
-	sendEvent(name: "lastpressed", value: now, displayed: false)
+	sendEvent(name: "lastPressed", value: now, displayed: false)
 	sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was pushed", isStateChange: true)
 }
 
 def manualHold() {
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
-	sendEvent(name: "lastpressed", value: now, displayed: false)
+	sendEvent(name: "lastPressed", value: now, displayed: false)
 	sendEvent(name: "button", value: "held", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was held", isStateChange: true)
 	sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was released", isStateChange: true)
 }
@@ -108,9 +108,9 @@ def parse(String description) {
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         //log.debug ("SecurityMessageEncapsulation cmd:$cmd")
+		log.debug ("Secure command")
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
 
-        // can specify command class versions here like in zwave.parse
         if (encapsulatedCommand) {
             //log.debug ("SecurityMessageEncapsulation encapsulatedCommand:$encapsulatedCommand")
             return zwaveEvent(encapsulatedCommand)
@@ -122,33 +122,13 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
     log.debug("Button Woke Up!")
     def event = createEvent(descriptionText: "${device.displayName} woke up", displayed: false)
     def cmds = []
-    // request battery
-    // cmds += zwave.batteryV1.batteryGet()
-    // let wakeup go back to sleep
     cmds += zwave.wakeUpV1.wakeUpNoMoreInformation()
     
     [event, encapSequence(cmds, 500)]
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.crc16encapv1.Crc16Encap cmd) {
-    log.debug("Crc16Encap: $cmd")
-    log.debug( "Data: $cmd.data")
-    log.debug( "Payload: $cmd.payload")
-    log.debug( "command: $cmd.command")
-    log.debug( "commandclass: $cmd.commandClass")
-    def versions = [0x31: 3, 0x30: 2, 0x84: 2, 0x9C: 1, 0x70: 2]
-    def version = versions[cmd.commandClass as Integer]
-    def ccObj = version ? zwave.commandClass(cmd.commandClass, version) : zwave.commandClass(cmd.commandClass)
-    def encapsulatedCommand = ccObj?.command(cmd.command)?.parse(cmd.data)
-    if (!encapsulatedCommand) {
-        log.debug "Could not extract command from $cmd"
-    } else {
-        zwaveEvent(encapsulatedCommand)
-    }
-}
-
 def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotification cmd) {
-    log.debug( "CentralSceneNotification: $cmd")
+    //log.debug( "CentralSceneNotification: $cmd")
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
 	sendEvent(name: "lastpressed", value: now, displayed: false)
     
@@ -171,16 +151,11 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 	def val = (cmd.batteryLevel == 0xFF ? 1 : cmd.batteryLevel)
 	if (val > 100) {
 		val = 100
-	}
-	state.lastBatteryReport = new Date().time	    	
+	}  	
 	def isNew = (device.currentValue("battery") != val)    
 	def result = []
 	result << createEvent(name: "battery", value: val, unit: "%", display: isNew, isStateChange: isNew)	
 	return result
-}
-
-def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport cmd) {
-    log.debug("V2 ConfigurationReport cmd: $cmd")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.configurationv1.ConfigurationReport cmd) {
@@ -195,7 +170,6 @@ def zwaveEvent(physicalgraph.zwave.commands.manufacturerspecificv2.ManufacturerS
     log.debug("ManufacturerSpecificReport cmd: $cmd")
 }
 
-
 private encapSequence(commands, delay=200) {
         delayBetween(commands.collect{ encap(it) }, delay)
 }
@@ -204,18 +178,15 @@ private secure(physicalgraph.zwave.Command cmd) {
         zwave.securityV1.securityMessageEncapsulation().encapsulate(cmd).format()
 }
 
-private crc16(physicalgraph.zwave.Command cmd) {
-        //zwave.crc16EncapV1.crc16Encap().encapsulate(cmd).format()
-    "5601${cmd.format()}0000"
+private nonsecure(physicalgraph.zwave.Command cmd) {
+		"5601${cmd.format()}0000"
 }
 
 private encap(physicalgraph.zwave.Command cmd) {
     def secureClasses = [0x5B, 0x85, 0x84, 0x5A, 0x86, 0x72, 0x71, 0x70 ,0x8E, 0x9C]
-    //todo: check if secure inclusion was successful
-    //if not do not send security-encapsulated command
     if (secureClasses.find{ it == cmd.commandClassId }) {
         secure(cmd)
     } else {
-        crc16(cmd)
+        nonsecure(cmd)
     }
 }
