@@ -134,6 +134,8 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 	sendEvent(name: "lastPressed", value: now, displayed: false)
 	
 	if (device.currentValue("lastSequence") != cmd.sequenceNumber){
+
+		sendEvent(name: "lastSequence", value: cmd.sequenceNumber, displayed: false)
     
 		if (cmd.keyAttributes == 0) {
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName button was pushed", isStateChange: true)
@@ -147,7 +149,6 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 			sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName button was released", isStateChange: true)
 			log.debug( "Button released" )
 		}
-		sendEvent(name: "lastSequence", value: cmd.sequenceNumber, displayed: false)
 	}
 }
 
