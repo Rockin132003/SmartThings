@@ -31,6 +31,7 @@ metadata {
         capability "Holdable Button" 
         
         attribute "lastPressed", "string"
+		attribute "lastSequence", "number"
 		
 		command "manualPush"
         command "manualHold"
@@ -130,20 +131,24 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
 def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotification cmd) {
     //log.debug( "CentralSceneNotification: $cmd")
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
-	sendEvent(name: "lastpressed", value: now, displayed: false)
+	sendEvent(name: "lastPressed", value: now, displayed: false)
+	
+	if (device.currentValue("lastSequence") != cmd.sequenceNumber){
     
-    if (cmd.keyAttributes == 0) {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName button was pushed", isStateChange: true)
-        log.debug( "Button pushed" )
-    }
-    if (cmd.keyAttributes == 2) {
-        sendEvent(name: "button", value: "held", data: [buttonNumber: 1], descriptionText: "$device.displayName button was held", isStateChange: true)
-        log.debug( "Button held" )
-    }
-    if (cmd.keyAttributes == 1) {
-        sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName button was released", isStateChange: true)
-        log.debug( "Button released" )
-    } 
+		if (cmd.keyAttributes == 0) {
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName button was pushed", isStateChange: true)
+			log.debug( "Button pushed" )
+		}
+		if (cmd.keyAttributes == 2) {
+			sendEvent(name: "button", value: "held", data: [buttonNumber: 1], descriptionText: "$device.displayName button was held", isStateChange: true)
+			log.debug( "Button held" )
+		}
+		if (cmd.keyAttributes == 1) {
+			sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName button was released", isStateChange: true)
+			log.debug( "Button released" )
+		}
+		sendEvent(name: "lastSequence", value: cmd.sequenceNumber, displayed: false)
+	}
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
