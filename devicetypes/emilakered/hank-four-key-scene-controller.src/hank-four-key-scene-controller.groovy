@@ -26,9 +26,7 @@ metadata {
         
         attribute "lastPressed", "string"
 		attribute "numberOfButtons", "number"
-		
-		command "manualPush"
-        command "manualHold"
+		attribute "lastSequence", "number"
 		
 		fingerprint mfr: "0208", prod: "0200", model: "000B"
         fingerprint deviceId: "0x1801", inClusters: "0x5E,0x86,0x72,0x5B,0x59,0x85,0x80,0x84,0x73,0x70,0x7A,0x5A", outClusters: "0x26"
@@ -47,36 +45,15 @@ metadata {
 			tileAttribute("device.lastPressed", key: "SECONDARY_CONTROL") {
                 attributeState "default", label:'Last used: ${currentValue}'
             }
-        }
-        
-        standardTile("manualPush", "device.manualPush", width: 2, height: 2, decoration: "flat") {
-            state "default", backgroundColor:"#00A0DC", action: "manualPush", label: "Push"
-        }
-		
-        standardTile("manualHold", "device.manualHold", width: 2, height: 2, decoration: "flat") {
-            state "default", backgroundColor:"#4cbce6", action: "manualHold", label: "Hold"
-        }		
+        }	
         
         valueTile("battery", "device.battery", decoration: "flat", width: 2, height: 2){
 			state "battery", label:'${currentValue}% battery', unit:"%"
 		}
         
         main "button"
-        details(["button","battery","manualPush","manualHold"])
+        details(["button","battery"])
     }
-}
-
-def manualPush() {
-	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
-	sendEvent(name: "lastPressed", value: now, displayed: false)
-	sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was pushed", isStateChange: true)
-}
-
-def manualHold() {
-	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
-	sendEvent(name: "lastPressed", value: now, displayed: false)
-	sendEvent(name: "button", value: "held", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was held", isStateChange: true)
-	sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName app button was released", isStateChange: true)
 }
 
 def parse(String description) {
@@ -137,20 +114,24 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
 	sendEvent(name: "lastpressed", value: now, displayed: false)
 	
-	Integer button = cmd.sceneNumber
-	
-    if (cmd.keyAttributes == 0) {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        log.debug( "Button $button pushed" )
-    }
-    if (cmd.keyAttributes == 2) {
-        sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button held", isStateChange: true)
-        log.debug( "Button $button held" )
-    }
-    if (cmd.keyAttributes == 1) {
-        sendEvent(name: "button", value: "released", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button released", isStateChange: true)
-        log.debug( "Button $button released" )
-    } 
+	if (device.currentValue("lastSequence") != cmd.sequenceNumber){
+
+		sendEvent(name: "lastSequence", value: cmd.sequenceNumber, displayed: false)
+		Integer button = cmd.sceneNumber
+		
+		if (cmd.keyAttributes == 0) {
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+			log.debug( "Button $button pushed" )
+		}
+		if (cmd.keyAttributes == 2) {
+			sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button held", isStateChange: true)
+			log.debug( "Button $button held" )
+		}
+		if (cmd.keyAttributes == 1) {
+			sendEvent(name: "button", value: "released", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button released", isStateChange: true)
+			log.debug( "Button $button released" )
+		}
+	}
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
