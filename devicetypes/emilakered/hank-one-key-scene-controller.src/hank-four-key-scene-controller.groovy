@@ -1,5 +1,5 @@
 /**
- *  Hank HKZW-SCN01 DTH by Emil Åkered (@emilakered)
+ *  Hank HKZW-SCN04 DTH by Emil Åkered (@emilakered)
  *  Based on DTH "Fibaro Button", copyright 2017 Ronald Gouldner (@gouldner)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
@@ -12,12 +12,6 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *	2018-03-03
- *	- Changed colors
- *	- Removed some unused code
- *	- Removed Configuration for now, can't find how to trigger the hardware anyway
- *	- Re-added some debug messages
- *
- *	2018-03-02
  *	- Initial release
  *
  */
@@ -31,11 +25,12 @@ metadata {
         capability "Holdable Button" 
         
         attribute "lastPressed", "string"
+		attribute "numberOfButtons", "number"
 		
 		command "manualPush"
         command "manualHold"
 		
-		fingerprint mfr: "0208", prod: "0200", model: "0009"
+		fingerprint mfr: "0208", prod: "0200", model: "000B"
         fingerprint deviceId: "0x1801", inClusters: "0x5E,0x86,0x72,0x5B,0x59,0x85,0x80,0x84,0x73,0x70,0x7A,0x5A", outClusters: "0x26"
     }
 
@@ -100,7 +95,11 @@ def parse(String description) {
             if (event) {
                 results += event
             }
-        }
+		}
+		if (!state.numberOfButtons) {
+			state.numberOfButtons = "4"
+			createEvent(name: "numberOfButtons", value: "4", displayed: false)
+  		}
     }
     return results
 }
@@ -131,18 +130,20 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
     //log.debug( "CentralSceneNotification: $cmd")
 	def now = new Date().format("yyyy MMM dd EEE HH:mm:ss", location.timeZone)	
 	sendEvent(name: "lastpressed", value: now, displayed: false)
-    
+	
+	Integer button = cmd.sceneNumber
+	
     if (cmd.keyAttributes == 0) {
-        sendEvent(name: "button", value: "pushed", data: [buttonNumber: 1], descriptionText: "$device.displayName button was pushed", isStateChange: true)
-        log.debug( "Button pushed" )
+        sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+        log.debug( "Button $button pushed" )
     }
     if (cmd.keyAttributes == 2) {
-        sendEvent(name: "button", value: "held", data: [buttonNumber: 1], descriptionText: "$device.displayName button was held", isStateChange: true)
-        log.debug( "Button held" )
+        sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button held", isStateChange: true)
+        log.debug( "Button $button held" )
     }
     if (cmd.keyAttributes == 1) {
-        sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName button was released", isStateChange: true)
-        log.debug( "Button released" )
+        sendEvent(name: "button", value: "released", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button released", isStateChange: true)
+        log.debug( "Button $button released" )
     } 
 }
 
