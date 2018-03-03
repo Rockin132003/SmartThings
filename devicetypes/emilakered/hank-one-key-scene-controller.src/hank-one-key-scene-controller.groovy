@@ -1,5 +1,5 @@
 /**
- *  Experimental Hank HKZW-SCN01 DTH by Emil Åkered (@emilakered)
+ *  Hank HKZW-SCN01 DTH by Emil Åkered (@emilakered)
  *  Based on DTH "Fibaro Button", copyright 2017 Ronald Gouldner (@gouldner)
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
