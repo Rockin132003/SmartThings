@@ -90,7 +90,7 @@ def parse(String description) {
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         //log.debug ("SecurityMessageEncapsulation cmd:$cmd")
-		log.debug ("Secure command")
+		//log.debug ("Secure command")
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
 
         if (encapsulatedCommand) {
