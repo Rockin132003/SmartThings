@@ -131,6 +131,8 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 			sendEvent(name: "button", value: "released", data: [buttonNumber: button], descriptionText: "$device.displayName button was $button released", isStateChange: true)
 			log.debug( "Button $button released" )
 		}
+	} else {
+		log.debug( "Duplicate sequenceNumber dropped!")
 	}
 }
 

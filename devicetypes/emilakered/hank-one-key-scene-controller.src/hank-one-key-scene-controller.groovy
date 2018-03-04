@@ -109,7 +109,7 @@ def parse(String description) {
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         //log.debug ("SecurityMessageEncapsulation cmd:$cmd")
-		log.debug ("Secure command")
+		//log.debug ("Secure command")
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
 
         if (encapsulatedCommand) {
@@ -149,6 +149,8 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
 			sendEvent(name: "button", value: "released", data: [buttonNumber: 1], descriptionText: "$device.displayName button was released", isStateChange: true)
 			log.debug( "Button released" )
 		}
+	} else {
+		log.debug( "Duplicate sequenceNumber dropped!")
 	}
 }
 
